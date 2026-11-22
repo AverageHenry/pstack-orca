@@ -24,11 +24,11 @@ node scripts/place.mjs uninstall --home <home>
 node HOME_SH snapshot <home> > after.txt
 ```
 
-Proof: install prints `claude: 62 skills, kept your own tdd`; the line `link .claude/skills/tdd` is in both snapshots; and the lines under `user-skill-target/` are identical in both, so nothing was written through the link.
+Proof: install prints `claude: 63 skills, kept your own tdd`; the line `link .claude/skills/tdd` is in both snapshots; and the lines under `user-skill-target/` are identical in both, so nothing was written through the link.
 
 For a plain folder, create `<home>/.claude/skills/tdd/SKILL.md` by hand in place of the `link` step and check that its hash is unchanged.
 
 ## Gotchas
 
 - `link` makes a junction on Windows. A dangling link needs its target removed by hand after `link`: delete `<home>/user-skill-target/<skill>`.
-- The count is 63 minus the skills kept, so two kept skills give 61.
+- The count is 64 minus the skills kept, so two kept skills give 62.

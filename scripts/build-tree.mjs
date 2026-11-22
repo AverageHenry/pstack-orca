@@ -19,8 +19,10 @@ const MATT_SKILLS = [
   "engineering/research",
   "engineering/wizard",
 ];
-const hasMatt = MATT && MATT_SKILLS.every((path) => existsSync(join(MATT, "skills", path, "SKILL.md")));
-if (!SOURCE || !existsSync(join(SOURCE, "pstack", "skills")) || !hasMatt) {
+const TEAM_KIT_SKILLS = ["deslop"];
+const hasMatt = MATT &&MATT_SKILLS.every((path) => existsSync(join(MATT, "skills", path, "SKILL.md")));
+const hasTeamKit = SOURCE && TEAM_KIT_SKILLS.every((name) => existsSync(join(SOURCE, "cursor-team-kit", "skills", name, "SKILL.md")));
+if (!SOURCE || !existsSync(join(SOURCE, "pstack", "skills")) || !hasTeamKit || !hasMatt) {
   console.log("Usage: node scripts/build-tree.mjs <cursor-plugins-checkout> <mattpocock-skills-checkout> [--check]");
   process.exit(1);
 }
@@ -59,6 +61,9 @@ const TERMS = [
   { key: ".cursor/rules/", re: /\.cursor\/rules|always-applied rule/ },
   { key: "agent-transcripts", re: /agent-transcripts|\.cursor\/projects/ },
   { key: "create-skill", re: /create-skill/ },
+  { key: "`/deslop`", re: /\/deslop/ },
+  { key: "`control-ui`", re: /control-ui/ },
+  { key: "`control-cli`", re: /control-cli/ },
   { key: "`/loop`", re: /`\/loop`/ },
   { key: "Cursor-only features", re: /Bugbot|Cursor [Aa]utomation|cursor\.(sh|com)\/automations|[Cc]loud [Aa]gent|built-in PR tool/ },
 ];
@@ -159,6 +164,16 @@ function render() {
     for (const path of walk(dir)) files.set(`skills/${name}/${relative(dir, path).split("\\").join("/")}`, readFileSync(path));
   }
   files.set("LICENSE.mattpocock-skills", readFileSync(join(MATT, "LICENSE")));
+  // pstack runs these before each commit; they come from cursor-team-kit in the same checkout as pstack.
+  for (const name of TEAM_KIT_SKILLS) {
+    if (has(files, `skills/${name}`)) {
+      console.log(`FAIL ${name} from cursor-team-kit is already in the tree`);
+      process.exit(1);
+    }
+    const dir = join(SOURCE, "cursor-team-kit", "skills", name);
+    for (const path of walk(dir)) files.set(`skills/${name}/${relative(dir, path).split("\\").join("/")}`, readFileSync(path));
+  }
+  files.set("LICENSE.cursor-team-kit", readFileSync(join(SOURCE, "cursor-team-kit", "LICENSE")));
   files.set("VERSION", Buffer.from(`pstack ${version}\ncursor/plugins ${head(SOURCE)}\nmattpocock/skills ${head(MATT)}\n`));
   return files;
 }
@@ -194,5 +209,5 @@ if (process.argv.includes("--check")) {
     writeFileSync(join(OUT, path), bytes);
   }
   const wrapped = [...classes.values()].filter(({ wrap }) => wrap).length;
-  console.log(`${skills.length} pstack skills, ${MATT_SKILLS.length} mattpocock skills, ${wrapped} SKILL.md files with the adapter line, ${files.size} files`);
+  console.log(`${skills.length} pstack skills, ${MATT_SKILLS.length} mattpocock skills, ${TEAM_KIT_SKILLS.length} cursor-team-kit skill, ${wrapped} SKILL.md files with the adapter line, ${files.size} files`);
 }

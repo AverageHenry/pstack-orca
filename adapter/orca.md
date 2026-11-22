@@ -19,7 +19,10 @@ Work that another agent hands back goes to an Orca worker. Searching and reading
 | `AskQuestion` | Your agent's own question tool. With none, ask in plain text. |
 | Open a todolist, or copy steps into the todolist tool | Your agent's own todo tool. With none, keep the list in your reply and update it at each phase. |
 | Run another pstack skill (`/name` or "the **name** skill") | Read `<pstack>/skills/<name>/SKILL.md` and follow it. When you tell the user to type it, write the name in the form their agent uses, such as `/name`. |
-| The **create-skill** skill, Cursor's built-in for authoring a `SKILL.md` | Your agent's own skill-authoring skill if it has one. Otherwise write the `SKILL.md` by hand: frontmatter with `name` and `description`, then the body. |
+| The **create-skill** skill, Cursor's built-in for authoring a `SKILL.md` | Read `<pstack>/skills/writing-for-agents/SKILL.md` and follow it. It ships with this install. |
+| `/deslop` from the `cursor-team-kit` plugin | Read `<pstack>/skills/deslop/SKILL.md` and follow it. It ships with this install. |
+| `control-ui` from `cursor-team-kit`, "the control skill" for a web, IDE or Electron surface | The project's own verification skill first: a skill named `verify-<app>` in the repository's skills folders. With none, Orca's built-in browser through the bundled **orca-cli** skill for a web page, and the bundled **orca-computer-use** skill for a native window. Say which one you used. |
+| `control-cli` from `cursor-team-kit`, "the control skill" for a CLI or TUI | The project's own verification skill first. With none, an Orca terminal through the bundled **orca-cli** skill: create it with the command under test, send one input at a time, wait for it to go idle, and read the screen. Do not use `tmux`. |
 | Cursor's `/loop` command | Your agent's own loop command if it has one, such as `/loop` in Claude Code. Otherwise say so, do as much as one turn allows, and tell the user what to send to continue. |
 
 ## Workers end your turn

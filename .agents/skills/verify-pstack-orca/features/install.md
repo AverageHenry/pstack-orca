@@ -22,12 +22,12 @@ node scripts/place.mjs install --home <home>
 node HOME_SH snapshot <home>
 ```
 
-Proof of a working install: the summary says `claude: 63 skills` and `codex: 63 skills`; the snapshot has 63 `dir` lines directly under `.claude/skills` and under `.agents/skills`, none under `.gemini`, `.cursor` or `.grok`; `<home>/.pstack-orca/VERSION` exists; and the path inside any stub's `SKILL.md` resolves to an existing file.
+Proof of a working install: the summary says `claude: 64 skills` and `codex: 64 skills`; the snapshot has 64 `dir` lines directly under `.claude/skills` and under `.agents/skills`, none under `.gemini`, `.cursor` or `.grok`; `<home>/.pstack-orca/VERSION` exists; and the path inside any stub's `SKILL.md` resolves to an existing file.
 
 For the reinstall claim, write any text to `<home>/.pstack-orca/pstack-models.md`, install again, and compare that file's line in the two snapshots.
 
 ## Gotchas
 
-- The count follows `tree/skills`. When a source adds or drops a skill, 63 changes: read the expected number from `ls tree/skills`.
+- The count follows `tree/skills`. When a source adds or drops a skill, 64 changes: read the expected number from `ls tree/skills`.
 - A relative `--home` is resolved against the current directory, so run from the repository root.
 - Codex stubs go in `.agents/skills`, not `.codex/skills`, although the agent's home folder is `.codex`.

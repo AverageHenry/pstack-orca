@@ -2,7 +2,9 @@
 
 [pstack](https://github.com/cursor/plugins/tree/main/pstack) is Lauren Tan's skill pack for rigorous agent work, written for Cursor. This plugin installs it for the agents you run in [Orca](https://github.com/stablyai/orca): Claude Code, Codex, Antigravity, Cursor and Grok. See [NOTICE.md](./NOTICE.md) for what is and is not changed.
 
-Five skills by [Matt Pocock](https://github.com/mattpocock/skills) come with it, unchanged: `grilling` (interview before building), `diagnosing-bugs`, `writing-for-agents`, `research` and `wizard`. pstack has no equivalent for them. They were picked after checking current vendor guidance and measured studies; his spec, ticket, TDD and review flow is left out because pstack covers that ground differently.
+Five skills by [Matt Pocock](https://github.com/mattpocock/skills) come with it, unchanged: `grilling` (interview before building), `diagnosing-bugs`, `writing-for-agents`, `research` and `wizard`. pstack has no equivalent for them. `deslop`, which pstack runs on the diff before each commit, comes from Cursor's `cursor-team-kit`, unchanged.
+
+The five by Matt Pocock were picked after checking current vendor guidance and measured studies; his spec, ticket, TDD and review flow is left out because pstack covers that ground differently.
 
 ## What it does
 

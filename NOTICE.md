@@ -8,4 +8,6 @@ This is a community port. It is not made, reviewed, or endorsed by Lauren Tan, C
 
 Five skills in `tree/skills/` (`grilling`, `diagnosing-bugs`, `writing-for-agents`, `research`, `wizard`) are copied unchanged from [mattpocock/skills](https://github.com/mattpocock/skills) by Matt Pocock, MIT license, at the commit `tree/VERSION` names. His license text is `tree/LICENSE.mattpocock-skills`. This is not made, reviewed, or endorsed by Matt Pocock.
 
+`tree/skills/deslop` is copied unchanged from [cursor-team-kit](https://github.com/cursor/plugins/tree/main/cursor-team-kit) by Cursor, MIT license, at the same commit as pstack. Its license text is `tree/LICENSE.cursor-team-kit`.
+
 Report a problem with the port here, not to pstack or to mattpocock/skills.

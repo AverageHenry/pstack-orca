@@ -67,7 +67,7 @@ diff .notes/verify/<run>/before.txt .notes/verify/<run>/after.txt
 
 A snapshot lists every folder, file with a content hash, and link under the home. Proof standards:
 
-- The printed summary is a claim, not proof. "63 skills" is proven by the snapshot showing 63 stub folders.
+- The printed summary is a claim, not proof. "64 skills" is proven by the snapshot showing 64 stub folders.
 - "Writes nothing" (dry run, doctor, status) is proven by identical snapshots before and after.
 - "Left the user's skill alone" is proven by that entry's line being identical in both snapshots.
 - An error path is proven by the non-zero exit code and by an unchanged snapshot.
