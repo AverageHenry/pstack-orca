@@ -22,6 +22,8 @@ const ADAPTER_SOURCE = join(ROOT, "adapter", "orca.md");
 const GUIDE = "docs/guide";
 const GITHUB = "https://github.com/cursor/plugins";
 const LINK = /\]\(([^)\s]+)\)/g;
+// Left out to keep the plugin small: links to these point at GitHub instead.
+const LEFT_OUT = ["docs/guide/images/", "skills/statechart/scripts/test/"];
 
 const TERMS = [
   { key: "`Task`", re: /`Task`|\bTask (tool|subagent|call)/ },
@@ -112,7 +114,9 @@ function has(files, path) {
 
 function render() {
   const copies = [...walk(SKILLS), ...walk(join(PSTACK, "agents")), ...walk(join(PSTACK, GUIDE)), join(PSTACK, "README.md")];
-  const files = new Map(copies.map((path) => [rel(path), readFileSync(path)]));
+  const files = new Map(
+    copies.map((path) => [rel(path), path]).filter(([name]) => !LEFT_OUT.some((prefix) => name.startsWith(prefix))).map(([name, path]) => [name, readFileSync(path)]),
+  );
   files.set(ADAPTER, Buffer.from(adapter));
   files.set("LICENSE", readFileSync(join(PSTACK, "LICENSE")));
   const line =

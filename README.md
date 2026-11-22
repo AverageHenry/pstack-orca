@@ -1,4 +1,4 @@
-# pstack for Orca (unofficial port)
+# pstack skills for Orca (community port)
 
 [pstack](https://github.com/cursor/plugins/tree/main/pstack) is Lauren Tan's skill pack for rigorous agent work, written for Cursor. This plugin installs it for the agents you run in [Orca](https://github.com/stablyai/orca): Claude Code, Codex, Antigravity, Cursor and Grok. See [NOTICE.md](./NOTICE.md) for what is and is not changed.
 
