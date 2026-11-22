@@ -40,3 +40,7 @@ node scripts/build-tree.mjs <cursor/plugins checkout> <mattpocock/skills checkou
 ```
 
 The build fails when a skill uses a Cursor name the adapter has no row for.
+
+## Checking a change
+
+`.agents/skills/verify-pstack-orca/` is a skill for agents working on this repository. It drives the installer in a scratch home folder and says what proves each feature. Start at its `SKILL.md`.
