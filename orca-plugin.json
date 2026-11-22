@@ -1,0 +1,21 @@
+{
+  "manifestVersion": 2,
+  "execution": "trusted-worker",
+  "id": "pstack-orca",
+  "name": "pstack for Orca (unofficial port)",
+  "version": "0.1.0",
+  "description": "Unofficial port of pstack, Lauren Tan's skill pack for rigorous agent work. Installs the skills for Claude Code, Codex, Antigravity, Cursor and Grok, and routes delegated work to Orca workers.",
+  "author": { "name": "Tauri-EPO", "url": "https://github.com/Tauri-EPO" },
+  "repository": "https://github.com/Tauri-EPO/pstack-orca",
+  "license": "MIT",
+  "engines": { "orca": ">=1.4.246" },
+  "pluginApi": 1,
+  "main": "main.mjs",
+  "contributes": {
+    "commands": [
+      { "id": "pstack.install", "title": "pstack: Install or update skills for my agents" },
+      { "id": "pstack.status", "title": "pstack: Show where skills are installed" },
+      { "id": "pstack.uninstall", "title": "pstack: Remove skills from my agents" }
+    ]
+  }
+}
