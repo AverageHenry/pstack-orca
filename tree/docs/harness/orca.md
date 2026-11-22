@@ -59,6 +59,7 @@ A role names an Orca agent, then optionally a model and an effort: `<agent> [<mo
 | --- | --- |
 | `~/.cursor/rules/pstack-models.mdc`, the `pstack-models.mdc` rule | `<pstack>/pstack-models.md`. No agent loads it for you, so read it the first time a step needs a role. A role with no line uses the default below. |
 | A role value `<agent> <model> <effort>` | `--agent <agent> --model <model> --effort <effort>`. |
+| A role value `<agent> <model>` with no effort, such as `antigravity gemini-4-neon-xhigh` | `--agent <agent> --model <model>` with no `--effort`. Antigravity model ids carry their effort. |
 | A role value `<agent>` alone | `--agent <agent>` with no `--model`. The worker runs on the model that agent is configured with. |
 | `auto` or `inherit-parent` | `--agent` is the agent you are running as, with no `--model`. |
 | A `claude-<family>-<version>-<effort>[-fast]` slug with no line in the file | `--agent claude --model claude-<family>-<version> --effort <effort>`. Drop `-fast`. |
@@ -73,9 +74,10 @@ A role names an Orca agent, then optionally a model and an effort: `<agent> [<mo
 
 `setup-pstack` writes `<pstack>/pstack-models.md` in place of the Cursor rule. Follow its steps with these changes:
 
-- Detect. Ask the user which Orca agents they use, and offer the ones named in `orca orchestration worker-start --help`. For each agent, ask for a model id and effort only when the user wants one pinned. Never write a model id the user did not give you.
+- Detect. Ask the user which Orca agents they use, and offer the ones named in `orca orchestration worker-start --help`. Orca has no command that lists models, so find each agent's model ids on this machine: for Codex, the `slug` values in `~/.codex/models_cache.json`; for Claude Code, the ids the user's Claude account offers, such as `claude-opus-5-5`; for Antigravity, the ids its own model picker shows, which end in the effort, such as `gemini-4-neon-xhigh`. Confirm an id before you write it: start one worker with it and a one-line spec, and keep the id only when the start receipt says `ready` with that model. Never write a model id you have not confirmed this way. An agent with no confirmed id is written as the agent alone.
+- Panels. Follow the judge row of the Models table: order `arena cross-judge pool` so that its first entry is an agent with no entry in `arena runners`.
 - Defaults. Map each default slug with the Models table.
-- Budget. The effort is the last token of a three-token value. A value with the agent alone has no effort, so the budget step leaves it as it is.
+- Budget. The effort is the last token of a three-token value. For a two-token Antigravity value it is the ending of the model id, so the budget step swaps that ending for a confirmed id of the same model. A value with the agent alone has no effort, so the budget step leaves it as it is.
 - Write. Write `<pstack>/pstack-models.md` with no frontmatter, then the comment lines, the `# budget` line, and one line per role. Overwrite the whole file. Reinstalling pstack keeps this file.
 
 ## Paths
