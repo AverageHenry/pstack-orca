@@ -2,6 +2,8 @@
 
 [pstack](https://github.com/cursor/plugins/tree/main/pstack) is Lauren Tan's skill pack for rigorous agent work, written for Cursor. This plugin installs it for the agents you run in [Orca](https://github.com/stablyai/orca): Claude Code, Codex, Antigravity, Cursor and Grok. See [NOTICE.md](./NOTICE.md) for what is and is not changed.
 
+Five skills by [Matt Pocock](https://github.com/mattpocock/skills) come with it, unchanged: `grilling` (interview before building), `diagnosing-bugs`, `writing-for-agents`, `research` and `wizard`. pstack has no equivalent for them. They were picked after checking current vendor guidance and measured studies; his spec, ticket, TDD and review flow is left out because pstack covers that ground differently.
+
 ## What it does
 
 - Skills are the same text as pstack. One file, [`adapter/orca.md`](./adapter/orca.md), maps the Cursor names in them to Orca.
@@ -27,11 +29,12 @@ Then, in any agent, run `setup-pstack` once and use `poteto-mode` for work that 
 - Tested on Windows only, with Claude Code coordinating and Codex and Antigravity as workers. Not yet tested on macOS or Linux, with Cursor or Grok, or for `setup-pstack` and `poteto-mode`.
 - Skills are manual: type the name. In Codex and Antigravity they do not show in the automatic skill list.
 
-## Updating from pstack
+## Updating from the sources
 
 ```text
 git clone -c core.autocrlf=false https://github.com/cursor/plugins
-node scripts/build-tree.mjs <that checkout>
+git clone -c core.autocrlf=false https://github.com/mattpocock/skills
+node scripts/build-tree.mjs <cursor/plugins checkout> <mattpocock/skills checkout>
 ```
 
 The build fails when a skill uses a Cursor name the adapter has no row for.

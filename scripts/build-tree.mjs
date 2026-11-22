@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds tree/ from a cursor/plugins checkout plus adapter/orca.md.
 // Adapted from scripts/generate-pstack-harness-trees.mjs in cursor/plugins (MIT, Lauren Tan).
-// Usage: node scripts/build-tree.mjs <path-to-cursor-plugins-checkout> [--check]
+// Usage: node scripts/build-tree.mjs <cursor-plugins-checkout> <mattpocock-skills-checkout> [--check]
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -10,8 +10,18 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE = process.argv[2] && !process.argv[2].startsWith("--") ? resolvePath(process.argv[2]) : undefined;
-if (!SOURCE || !existsSync(join(SOURCE, "pstack", "skills"))) {
-  console.log("Usage: node scripts/build-tree.mjs <path-to-cursor-plugins-checkout> [--check]");
+const MATT = process.argv[3] && !process.argv[3].startsWith("--") ? resolvePath(process.argv[3]) : undefined;
+// The skills from mattpocock/skills that pstack has no equivalent for. Their text is copied unchanged.
+const MATT_SKILLS = [
+  "productivity/grilling",
+  "productivity/writing-for-agents",
+  "engineering/diagnosing-bugs",
+  "engineering/research",
+  "engineering/wizard",
+];
+const hasMatt = MATT && MATT_SKILLS.every((path) => existsSync(join(MATT, "skills", path, "SKILL.md")));
+if (!SOURCE || !existsSync(join(SOURCE, "pstack", "skills")) || !hasMatt) {
+  console.log("Usage: node scripts/build-tree.mjs <cursor-plugins-checkout> <mattpocock-skills-checkout> [--check]");
   process.exit(1);
 }
 const PSTACK = join(SOURCE, "pstack");
@@ -138,8 +148,18 @@ function render() {
     files.set(path, Buffer.from(text));
   }
   const version = JSON.parse(readFileSync(join(PSTACK, "plugin.json"), "utf8")).version;
-  const commit = execFileSync("git", ["-C", SOURCE, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-  files.set("VERSION", Buffer.from(`pstack ${version}\ncursor/plugins ${commit}\n`));
+  const head = (repo) => execFileSync("git", ["-C", repo, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  for (const source of MATT_SKILLS) {
+    const name = source.split("/")[1];
+    if (skills.includes(name)) {
+      console.log(`FAIL ${name} exists in both pstack and mattpocock/skills`);
+      process.exit(1);
+    }
+    const dir = join(MATT, "skills", source);
+    for (const path of walk(dir)) files.set(`skills/${name}/${relative(dir, path).split("\\").join("/")}`, readFileSync(path));
+  }
+  files.set("LICENSE.mattpocock-skills", readFileSync(join(MATT, "LICENSE")));
+  files.set("VERSION", Buffer.from(`pstack ${version}\ncursor/plugins ${head(SOURCE)}\nmattpocock/skills ${head(MATT)}\n`));
   return files;
 }
 
@@ -174,5 +194,5 @@ if (process.argv.includes("--check")) {
     writeFileSync(join(OUT, path), bytes);
   }
   const wrapped = [...classes.values()].filter(({ wrap }) => wrap).length;
-  console.log(`${skills.length} skills, ${wrapped} SKILL.md files with the adapter line, ${files.size} files`);
+  console.log(`${skills.length} pstack skills, ${MATT_SKILLS.length} mattpocock skills, ${wrapped} SKILL.md files with the adapter line, ${files.size} files`);
 }

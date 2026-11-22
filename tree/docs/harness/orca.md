@@ -95,3 +95,20 @@ Orca has no Cursor Automations, Bugbot, Cursor cloud agents, or built-in PR tool
 | Bugbot | Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command that the step gives. Skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment. |
 | Cursor cloud agents | `environment: "cloud"` maps to a child worktree, as in Subagent fields. Skip a step that needs the cloud agent itself. |
 | A built-in PR tool | Use the forge command that the step gives, such as `gh pr create`. That is not a skip, so write no line. |
+
+## Skills from Matt Pocock
+
+`grilling`, `diagnosing-bugs`, `writing-for-agents`, `research` and `wizard` come from [mattpocock/skills](https://github.com/mattpocock/skills), unchanged. They use general names, not Cursor names. Map them like this:
+
+| In the skill | Orca |
+| --- | --- |
+| A "sub-agent" that looks something up, with or without "a fresh context window" | Yours. See the one rule. |
+| The "background agent" in `research` | Your own background subagent if you have one. Otherwise an Orca worker whose spec is the question, the primary-sources rule, and the file to write. |
+| "Call the Skill tool with `<name>`" | Read `<pstack>/skills/<name>/SKILL.md` and follow it. With no such folder, that skill is not part of this install. Say so and go on. |
+| `GLOSSARY.md` and ADRs | Read them when the repository has them. Do not create them. |
+
+Where they meet pstack:
+
+- Run `grilling` before a build when the request leaves decisions open. Hand the settled decisions to `poteto-mode`.
+- `diagnosing-bugs` finds the cause of a hard bug. The Bug fix playbook then delegates the fix, verifies it, and orders the commits.
+- When `poteto-mode` splits work across workers, cut each slice through every layer it needs, so that it can be verified on its own.
