@@ -3,7 +3,7 @@
   "execution": "trusted-worker",
   "id": "pstack-orca",
   "name": "pstack skills (community port)",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Community port of pstack, Lauren Tan's skill pack for rigorous agent work, with five skills by Matt Pocock. Installs the skills for Claude Code, Codex, Antigravity, Cursor and Grok, and routes delegated work to Orca workers.",
   "author": { "name": "Tauri-EPO", "url": "https://github.com/Tauri-EPO" },
   "repository": "https://github.com/Tauri-EPO/pstack-orca",

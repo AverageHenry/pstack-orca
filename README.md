@@ -22,6 +22,8 @@ That copies pstack to `~/.pstack-orca` and writes one small stub per skill into 
 
 Then, in any agent, run `setup-pstack` once and use `poteto-mode` for work that needs rigor.
 
+`node scripts/doctor.mjs --home <your home folder>` checks an install without writing anything: it counts each agent's stubs and exits non-zero when one is broken or older than the installed copy.
+
 ## Limits
 
 - Orca has no read-only worker. A judge is told not to edit, and the coordinator checks `git status` afterward.

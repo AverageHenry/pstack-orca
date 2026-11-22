@@ -26,8 +26,10 @@ Work that another agent hands back goes to an Orca worker. Searching and reading
 
 A Cursor `Task` returns in the same turn. An Orca worker does not. Each phase that fans out becomes two turns:
 
-1. Start every worker of the phase from one shell command, at most four at once, then end your turn. Say which phase is waiting and on which workers.
+1. When a phase starts more than one worker, create the Run first with `orca orchestration run-create --objective "<goal>"` and pass `--run <run_id>` to each start, so they share one Run. Start every worker of the phase from one shell command, at most four at once, then end your turn. Say which phase is waiting and on which workers.
 2. Orca wakes you with each `worker_done`. When every worker of the phase has settled, go on to the next phase. Start the rest of a larger group as earlier workers return.
+
+A `worker_done` message is a summary. When a step needs the exact command a worker ran and what it printed, read `orca orchestration worker-read --dispatch <dispatch_id> --source transcript`.
 
 Never poll, sleep, or watch a worker's terminal. If a worker stops without `worker_done`, follow the orchestration skill's recovery reference. Proceed with N-1 only where the skill allows a dropout, and say so.
 
@@ -64,6 +66,7 @@ A role names an Orca agent, then optionally a model and an effort: `<agent> [<mo
 | A `gpt-*` slug with no line in the file | `--agent codex` with no `--model`. |
 | A `grok-*` slug with no line in the file | `--agent grok` with no `--model`. |
 | "Never from the parent's vendor", "another model family" | Another Orca agent than the one you are running as. Claude Code is Anthropic, Codex is OpenAI, Antigravity is Google, Grok is xAI. A Cursor worker's vendor is the vendor of its model. |
+| A judge or reviewer of several candidates | Prefer an agent that produced none of the candidates, and that is not the agent you are running as. With Claude, Codex and Antigravity available and candidates from two of them, the third judges. When every available agent has a candidate in the race, say that the judge shares a vendor with one, and weigh its pick with that in mind. |
 | "If the Task tool rejects a slug" | If `worker-start` fails with `agent_readiness`, that agent's CLI is missing or not signed in. Drop the seat, keep at least two runners where the skill asks for it, and say so. Do not rerun the same command. |
 
 ## setup-pstack
@@ -95,6 +98,20 @@ Orca has no Cursor Automations, Bugbot, Cursor cloud agents, or built-in PR tool
 | Bugbot | Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command that the step gives. Skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment. |
 | Cursor cloud agents | `environment: "cloud"` maps to a child worktree, as in Subagent fields. Skip a step that needs the cloud agent itself. |
 | A built-in PR tool | Use the forge command that the step gives, such as `gh pr create`. That is not a skip, so write no line. |
+
+## Clean up the worktrees you created
+
+Each `--worktree new-child` or `new-top-level` start leaves a worktree and a branch behind. Removing them is part of finishing, not a favour.
+
+1. Clean up when the Run has settled and its result is safe: merged, cherry-picked, or reported to the user who then said what to keep.
+2. Remove only worktrees this Run created. `orca orchestration worker-list --run <run_id>` names them.
+3. Remove child worktrees before their parent, each with `orca worktree rm --worktree "path:<path>" --delete-branch`. Orca stops the sessions in it and keeps any branch whose commits it cannot prove are merged.
+4. Never use `git worktree remove`, `rm -rf`, or `--force` for this. A removal Orca refuses is a decision for the user: name the worktree and the reason.
+5. End your reply with the worktrees removed and every branch Orca kept, with the commit each one holds.
+
+| Cursor | Orca |
+| --- | --- |
+| The Worktree cleanup playbook: `git worktree list`, `git worktree remove --force <path>` | `orca worktree list --json` and `orca worktree rm`, with the same gates: a pinned or active chat wins, and uncommitted work needs the user's decision first. |
 
 ## Skills from Matt Pocock
 
