@@ -2,22 +2,32 @@
 
 pstack skills use Cursor names. In an agent running inside Orca (Claude Code, Codex, Antigravity, Cursor, Grok, or any other), read this file once per session, then map each Cursor name in a skill with the tables below. `<pstack>` means the folder that holds `skills/` and `docs/`, which is the folder two levels above this file. If a Cursor field has no row, drop it and say so. Never pass a flag or value that the tool or the `orca` CLI rejects.
 
+## Briefs
+
+These rules hold from the first brief you write, before any worker exists.
+
+- Write every brief, spec and multiline message with your file tool, never with a shell heredoc (`<<`) or here-string (`<<<`), which can hang the shell. Pass a native seat its brief as the tool's prompt. Pass a worker the file with `--spec-file`, and a message with `--body-file`.
+- The first line of every brief, on either route, is `Read <pstack>/skills/poteto-mode/worker.md before anything else.` whenever **poteto-mode** is running, as poteto-mode and `worker.md` require. Then come, in this order: `Read <pstack>/docs/harness/orca.md before any work.`, the role text from Subagent fields, any start-point steps from Where a subagent runs, and the goal and task. With no poteto-mode, start at the adapter line. Write `<pstack>` as an absolute path.
+
 ## Where a subagent runs
 
 Each subagent a skill starts is a seat. Decide where each seat runs on its own, before you start it.
 
 1. **Your own subagent tool, by default.** A seat runs on your agent's own subagent tool when the role asks for the parent model, or when that tool can select the model the role asks for, and its effort when the role names one. In Claude Code that tool is `Agent`: its `model` takes the aliases `opus`, `sonnet`, `haiku` and `fable`, its `effort` takes the role's effort, and leaving `model` out runs the seat on your own model. Trust your tool's own schema over this list. When it does not show that the tool takes the model, the seat is not yours.
-2. **An Orca worker, only when the seat needs what your tool cannot give:**
+2. **Its own worktree on your own tool, when your tool can isolate.** A seat that needs its own worktree, and nothing else your tool lacks, stays yours when your tool's schema offers isolation. In Claude Code that is `Agent` with `isolation: "worktree"`. Such a seat starts from the commit Claude Code's `worktree.baseRef` setting picks: by default `fresh`, the remote's default branch, such as `origin/main`, not your branch and not your uncommitted changes. So commit what the seat needs, and put its commit id in the brief with this step before the task: `Run git reset --hard <sha> and check that git rev-parse HEAD prints <sha>.` Its worktree shares your repository, so an unpushed commit works. When the skill says to copy uncommitted changes in, save `git diff <sha>` to a patch file and have the seat `git apply` it after the reset.
+3. **An Orca worker, only when the seat needs what your tool cannot give:**
    - a model from another vendor, or one your tool cannot select, such as a full model id that Claude Code's `model` field does not take;
-   - its own worktree: `environment: "cloud"`, "its own worktree", or two or more seats that write files in the same phase, since your own subagents share your checkout;
+   - its own worktree, when your tool's schema shows no isolation option;
    - a session that must outlive this chat, such as a watcher that keeps running after you finish, or work the user will go on with in that chat.
 
-   Load the bundled **orchestration** skill (`orca skills get orchestration`) once and follow it for every worker.
-3. **No subagent tool.** If your agent has none, every seat that writes code, judges, reviews, or produces an artifact is an Orca worker, and you do each search or read yourself in this turn.
+   A worker that needs its own worktree starts with `--worktree new-child --name <short-name> --base-branch <branch or commit>`, so it starts from what it needs. Load the bundled **orchestration** skill (`orca skills get orchestration`) once and follow it for every worker.
+4. **No subagent tool.** If your agent has none, every seat that writes code, judges, reviews, or produces an artifact is an Orca worker, and you do each search or read yourself in this turn.
+
+A seat needs its own worktree when the skill says `environment: "cloud"` or "its own worktree", or when two or more seats write files in the same phase. In Claude Code all of these are `Agent` seats with `isolation: "worktree"` when the role's model is one `Agent` selects. So `swarm` workers, `arena` candidates, `interrogate` adversaries and parallel writers stay Orca workers only for a model `Agent` cannot select or a session that must outlive the chat. One writer alone in its phase shares your checkout.
 
 A seat that only searches or reads (`readonly: true` explorers, lookups, "find where X is defined") is always yours: your own subagent tool, or yourself.
 
-A panel mixes the two, seat by seat. In Claude Code, `arena` runners `opus high, fable high, codex` are two `Agent` seats and one Codex worker in the same phase.
+A panel mixes the two, seat by seat. In Claude Code, `arena` runners `opus high, fable high, codex` are two `Agent` seats with `isolation: "worktree"` and one Codex worker in a `new-child` worktree, in the same phase.
 
 Never run a seat on a model other than the one its role asks for. When a skill's fallback for a rejected model ends in "omit `model`", stop before that step unless the role asks for the parent model: the seat is unavailable. Name the seat and the reason, go on with the seats that started, and say when that leaves fewer seats than the skill asks for.
 
@@ -29,7 +39,7 @@ Use the bundled **orca-cli** skill for worktrees, terminals, and a handoff where
 
 | Cursor | Orca |
 | --- | --- |
-| `Task` | A seat. Pick its route with Where a subagent runs, and its model with Models. On your own tool, in Claude Code: `Agent` with `subagent_type: "general-purpose"`, the role's `model` and `effort`, and `run_in_background: true`. As a worker: `orca orchestration worker-start --spec-file <file> --agent <agent> [--model <id> [--effort <level>]] --worktree <current or new-child>`. Write the brief to a file first, so quotes need no escaping. |
+| `Task` | A seat. Pick its route with Where a subagent runs, and its model with Models. On your own tool, in Claude Code: `Agent` with `subagent_type: "general-purpose"`, the role's `model` and `effort`, `isolation: "worktree"` when the seat needs its own worktree, and `run_in_background` as in Workers end your turn. As a worker: `orca orchestration worker-start --spec-file <file> --agent <agent> [--model <id> [--effort <level>]] --worktree <current or new-child>`. Write briefs as in Briefs. |
 | `Task` that only searches or reads | Your own subagent tool, or do it yourself. See Where a subagent runs. |
 | `AskQuestion` | Your agent's own question tool. With none, ask in plain text. |
 | Open a todolist, or copy steps into the todolist tool | Your agent's own todo tool. With none, keep the list in your reply and update it at each phase. |
@@ -42,9 +52,14 @@ Use the bundled **orca-cli** skill for worktrees, terminals, and a handoff where
 
 ## Workers end your turn
 
-A Cursor `Task` returns in the same turn, and so does a seat on your own subagent tool: collect its result the way your tool delivers it. An Orca worker does not. A phase whose seats are all your own runs as it does in Cursor. A phase with at least one Orca worker becomes two turns:
+A Cursor `Task` returns in the same turn. A seat on your own subagent tool runs in the background or the foreground:
 
-1. When a phase starts more than one worker, create the Run first with `orca orchestration run-create --objective "<goal>"` and pass `--run <run_id>` to each start, so they share one Run. Start the phase's own seats in the background, then every worker of the phase from one shell command, at most four at once, then end your turn. Say which phase is waiting and on which seats.
+- **Background** is the default, as poteto-mode asks: `run_in_background: true` on Claude Code's `Agent`. Use it for every native seat of a phase with two or more seats, and for every native seat of a phase that also has an Orca worker. Your tool tells you when each finishes, which can wake you in a later turn.
+- **Foreground**, `run_in_background: false`, only for a native seat that is alone in its phase when your very next step needs its result and nothing else can run meanwhile, such as the one implementer of a Bug fix or the one Comment Sicko. It returns in the same turn.
+
+An Orca worker always ends your turn. A phase with at least one Orca worker becomes two turns:
+
+1. When a phase starts more than one worker, create the Run first with `orca orchestration run-create --objective "<goal>"` and pass `--run <run_id>` to each start, so they share one Run. A start without `--run` joins the Run already bound to your chat when there is one, and otherwise creates one, and its receipt names that Run. Keep the dispatch id from every start receipt: Clean up uses them. Start the phase's own seats in the background, then every worker of the phase from one shell command, at most four at once, then end your turn. Say which phase is waiting and on which seats.
 2. Orca wakes you with each `worker_done`, and your tool tells you when each of its seats finishes. When every seat of the phase has settled, go on to the next phase. Start the rest of a larger group as earlier seats return.
 
 A `worker_done` message is a summary. When a step needs the exact command a worker ran and what it printed, read `orca orchestration worker-read --dispatch <dispatch_id> --source transcript`.
@@ -56,16 +71,16 @@ Never poll, sleep, or watch a worker's terminal. If a worker stops without `work
 | Cursor | Orca |
 | --- | --- |
 | `subagent_type: generalPurpose` | Your tool's general type, such as `general-purpose` in Claude Code, or a worker, whose brief or spec is the brief alone. When the same call only searches or reads, it is yours. |
-| `poteto-agent` | Your tool's general type, or a worker, whose brief or spec starts with: "Read `<pstack>/docs/harness/orca.md`, then `<pstack>/skills/poteto-mode/SKILL.md` in full, including its Principles index, before any work. You are a delegate. The chat that started you owns the playbook, the todo list, and every subagent and worker." Write `<pstack>` as an absolute path. |
-| `comment-sicko` | Your tool's general type, or a worker, whose brief or spec starts with the body of `<pstack>/agents/comment-sicko.md`. |
+| `poteto-agent` | Your tool's general type, or a worker. Its role text, placed as in Briefs: "Read `<pstack>/skills/poteto-mode/SKILL.md` in full, including its Principles index, before any work. You are a delegate. The chat that started you owns the playbook, the todo list, and every subagent and worker." Write `<pstack>` as an absolute path. |
+| `comment-sicko` | Your tool's general type, or a worker. Its role text, placed as in Briefs, is the body of `<pstack>/agents/comment-sicko.md`, then this line: "You delete comments in the scope's files and edit nothing else. Report only means your reply is the report." That is how the body reads: it names touched files and a deletion count, and **no-comments** step 2 inspects its report and diff. It is the only writer in its phase, so it shares your checkout. Before you start it, stage your pending changes with `git add` and do not commit, so that afterwards `git diff` shows only its edits. That is the diff step 2 inspects. Restore a rejected deletion in the file by hand. |
 | The `model:` line in an agent file | It holds a Cursor slug. Never pass it. Map the role with the Models table. |
 | `readonly: true` on a searcher | Yours. See Where a subagent runs. |
 | `readonly: true` on a judge or reviewer | Routed like any other seat. Neither route enforces read-only, so the brief or spec says "Do not edit, create, or delete files", and you run `git status` in its checkout when it reports. Report any change it made. |
-| `readonly: false` | Routed like any other seat. Two or more such seats in one phase are workers, each in its own worktree. |
-| `environment: "cloud"`, or "its own worktree" | A worker with `--worktree new-child --name <short-name>`. Name the branch or commit the worker starts from with `--base-branch`. |
-| `environment: "local"` | Your own tool, or a worker with `--worktree current`. |
-| `cloud_base_branch: <b>` | `--base-branch <b>` with `--worktree new-child`. |
-| `run_in_background: true` | On your own tool, its background option, such as `run_in_background: true` on Claude Code's `Agent`. For a worker, omit it: every worker runs in the background. |
+| `readonly: false` | Routed like any other seat. Two or more such seats in one phase each need their own worktree. See Where a subagent runs. |
+| `environment: "cloud"`, or "its own worktree" | A seat that needs its own worktree. See Where a subagent runs: on your own tool with isolation and the commit named in the brief, or a worker with `--worktree new-child --name <short-name> --base-branch <branch or commit>`. |
+| `environment: "local"` | Your own tool without isolation, or a worker with `--worktree current`. |
+| `cloud_base_branch: <b>` | On your own tool, name the commit `<b>` points at in the brief, as in Where a subagent runs. For a worker, `--base-branch <b>` with `--worktree new-child`. |
+| `run_in_background: true` | On your own tool, its background option, such as `run_in_background: true` on Claude Code's `Agent`, except for the foreground case in Workers end your turn. For a worker, omit it: every worker runs in the background. |
 | `resume` | On your own tool, its way to message a subagent it started, such as `SendMessage` to the agent's id in Claude Code. For a worker, `orca orchestration send --to dispatch:<dispatch_id> --subject "<topic>" --body "<message>"`. It reaches a working worker when its turn ends and reopens a finished one. |
 | `file_attachments` | List the absolute paths in the brief or spec. |
 
@@ -81,7 +96,7 @@ A first token that is one of the four aliases is always an alias, never an agent
 
 | Cursor | Orca |
 | --- | --- |
-| `~/.cursor/rules/pstack-models.mdc`, the `pstack-models.mdc` rule | `<pstack>/pstack-models.md`. No agent loads it for you, so read it the first time a step needs a role. A role with no line uses the default below. |
+| `~/.cursor/rules/pstack-models.mdc`, the `pstack-models.mdc` rule | `<pstack>/pstack-models.md`. No agent loads it for you, so read it the first time a step needs a role. A role with no line uses the default below. It is the only model sheet for this install. Ignore every other pstack model sheet you see, even one your instruction file loads, such as `~/.claude/pstack-models.md` from another pstack install or a `pstack-models.mdc` rule. When `<pstack>/pstack-models.md` does not exist, use the defaults and tell the user once to run `setup-pstack`. |
 | A role value `<alias>` or `<alias> <effort>` | In Claude Code, your own `Agent` tool with `model: <alias>`, and `effort: <effort>` when the value has one. In any other agent, a worker with `--agent claude --model <alias>`, and `--effort <effort>` when the value has one. |
 | A role value `<agent> <model> <effort>` | Your own tool when `<agent>` is the agent you are running as and your tool takes that model id and effort. Claude Code's `Agent` takes aliases, not full ids, so there `claude claude-opus-5-5 xhigh` is a worker. Otherwise a worker with `--agent <agent> --model <model> --effort <effort>`. |
 | A role value `<agent> <model>` with no effort, such as `antigravity gemini-4-neon-xhigh` | The same, with no effort: a worker with `--agent <agent> --model <model>` and no `--effort`. Antigravity model ids carry their effort. |
@@ -128,17 +143,18 @@ Orca has no Cursor Automations, Bugbot, Cursor cloud agents, or built-in PR tool
 
 ## Clean up the worktrees you created
 
-Each `--worktree new-child` or `new-top-level` start leaves a worktree and a branch behind. Removing them is part of finishing, not a favour.
+Each `--worktree new-child` or `new-top-level` start leaves a worktree and a branch behind, and so does a native seat with isolation that changed files. Removing them is part of finishing, not a favour.
 
-1. Clean up when the Run has settled and its result is safe: merged, cherry-picked, or reported to the user who then said what to keep.
-2. Remove only worktrees this Run created. `orca orchestration worker-list --run <run_id>` names them.
-3. Remove child worktrees before their parent, each with `orca worktree rm --worktree "path:<path>" --delete-branch`. Orca stops the sessions in it and keeps any branch whose commits it cannot prove are merged.
-4. Never use `git worktree remove`, `rm -rf`, or `--force` for this. A removal Orca refuses is a decision for the user: name the worktree and the reason.
-5. End your reply with the worktrees removed and every branch Orca kept, with the commit each one holds.
+1. Clean up when the work has settled and its result is safe: merged, cherry-picked, or reported to the user who then said what to keep.
+2. Remove only worktrees you created. A Run can hold other chats' workers, since a start without `--run` joins the Run bound to your chat, so never pick worktrees from `orca orchestration worker-list --run <run_id>`. Pick them from the dispatch ids you kept from your own `new-child` and `new-top-level` start receipts: `orca orchestration worker-show --dispatch <dispatch_id> --json` gives each one's `workspace`, as `<repo-id>::<path>`. For native seats, use the worktree path and branch each result gave you.
+3. Orca worktrees: remove child worktrees before their parent, each with `orca worktree rm --worktree "id:<workspace>" --delete-branch`. Orca stops the sessions in it and keeps any branch whose commits it cannot prove are merged. Never use `git worktree remove`, `rm -rf`, or `--force` on an Orca worktree.
+4. Native worktrees: Claude Code removes an isolated seat's worktree itself when the seat changed nothing. For one it kept, check that `git -C <path> status --porcelain` prints nothing, then run `git worktree remove <path>` and `git branch -d <branch>`, never with `--force` or `-D`. When `git branch -d` refuses because the branch is not merged, keep the branch.
+5. A removal that is refused, or a worktree with uncommitted work, is a decision for the user: name the worktree and the reason.
+6. End your reply with the worktrees removed and every branch kept, with the commit each one holds.
 
 | Cursor | Orca |
 | --- | --- |
-| The Worktree cleanup playbook: `git worktree list`, `git worktree remove --force <path>` | `orca worktree list --json` and `orca worktree rm`, with the same gates: a pinned or active chat wins, and uncommitted work needs the user's decision first. |
+| The Worktree cleanup playbook: `git worktree list`, `git worktree remove --force <path>` | `orca worktree list --json` and `orca worktree rm`, with the same gates: a pinned or active chat wins, and uncommitted work needs the user's decision first. A native seat's worktree, such as one under `.claude/worktrees/`, follows step 4 above. |
 
 ## Skills from Matt Pocock
 

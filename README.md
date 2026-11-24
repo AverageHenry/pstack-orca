@@ -9,8 +9,8 @@ The five by Matt Pocock were picked after checking current vendor guidance and m
 ## What it does
 
 - Skills are the same text as pstack. One file, [`adapter/orca.md`](./adapter/orca.md), maps the Cursor names in them to Orca.
-- A subagent runs on the coordinating agent's own subagent tool when that tool can select the model its role asks for: in Claude Code, the `Agent` tool with `opus`, `sonnet`, `haiku` or `fable`, or the parent model. It becomes an Orca worker, through Orca's bundled `orchestration` skill, only when it needs a model from another vendor or one the tool cannot select, its own worktree, or a session that outlives the chat. A review panel decides seat by seat, so it can still seat a different agent in each chair. An agent with no subagent tool sends every such subagent to an Orca worker. Searching and reading stays with the agent you are talking to.
-- The model sheet, `~/.pstack-orca/pstack-models.md`, takes a Claude alias with an optional effort, such as `opus xhigh`, or an Orca agent with an optional model and effort, such as `codex` or `claude claude-opus-5-5 xhigh`.
+- A subagent runs on the coordinating agent's own subagent tool when that tool can select the model its role asks for: in Claude Code, the `Agent` tool with `opus`, `sonnet`, `haiku` or `fable`, or the parent model. It becomes an Orca worker, through Orca's bundled `orchestration` skill, only when it needs a model from another vendor or one the tool cannot select, its own worktree when the tool cannot make one, or a session that outlives the chat. In Claude Code, a seat that needs its own worktree, such as a `swarm` worker or an `interrogate` adversary, is an `Agent` seat with `isolation: "worktree"`. A review panel decides seat by seat, so it can still seat a different agent in each chair. An agent with no subagent tool sends every such subagent to an Orca worker. Searching and reading stays with the agent you are talking to.
+- The model sheet, `~/.pstack-orca/pstack-models.md`, takes a Claude alias with an optional effort, such as `opus xhigh`, or an Orca agent with an optional model and effort, such as `codex` or `claude claude-opus-5-5 xhigh`. It is the only sheet the port reads: any other pstack model sheet in an agent's context, such as `~/.claude/pstack-models.md` from another install, is ignored.
 - Steps that need a Cursor-only feature, such as Automations or Bugbot, are skipped with one line.
 
 ## Install
@@ -30,9 +30,10 @@ Then, in any agent, run `setup-pstack` once and use `poteto-mode` for work that 
 ## Limits
 
 - Neither route has an enforced read-only mode. A judge is told not to edit, and the coordinator checks `git status` afterward.
-- An Orca worker ends the coordinator's turn, so a phase with at least one worker runs across two turns. `swarm` usually does, because its workers ask for `environment: "cloud"`, which is a worker in its own worktree. A phase of only native subagents stays in one turn.
+- An Orca worker ends the coordinator's turn, so a phase with at least one worker runs across two turns. Native subagents run in the background, and their results can also arrive in a later turn. One native subagent whose result the next step needs runs in the foreground and returns in the same turn.
+- A Claude Code subagent with its own worktree starts from the remote's default branch, as Claude Code's `worktree.baseRef` setting defaults to, not from the coordinator's branch. The coordinator names the commit in the brief and the subagent resets to it.
 - A seat whose model cannot be launched is reported as unavailable, never run on the parent model instead.
-- The installer, doctor and build were run on Windows and macOS. Routing was tested on Windows with Claude Code coordinating and Codex and Antigravity as workers, before native seats existed. The hybrid routing, Linux, Cursor and Grok, `setup-pstack` and `poteto-mode` have not been tested end to end.
+- The installer, doctor and build were run on Windows and macOS. Routing was tested on Windows with Claude Code coordinating and Codex and Antigravity as workers, before native seats existed. One `poteto-mode` run on macOS (the Bug fix playbook and one `interrogate` pass, Claude Code coordinating, native seats with and without their own worktree and one Antigravity worker) worked; this release's fixes for what it found have not been run again. Linux, Cursor and Grok, `setup-pstack`, and `swarm` and `arena` in Orca have not been tested end to end.
 - Skills are manual: type the name. In Codex and Antigravity they do not show in the automatic skill list.
 
 ## Updating from the sources
