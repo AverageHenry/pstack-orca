@@ -45,7 +45,7 @@ node scripts/build-tree.mjs <cursor/plugins checkout> <mattpocock/skills checkou
 | Status | `node scripts/place.mjs status --home <home>` |
 | Uninstall | `node scripts/place.mjs uninstall --home <home>` |
 | Machine-readable result | add `--json` to any of the three |
-| Put a skill of the user's own in the way | `node HOME_SH link <home> <agent> <skill>` (a junction), or create `<home>/<agent skills folder>/<skill>/SKILL.md` by hand |
+| Put a skill of the user's own in the way | `node HOME_SH link <home> <agent> <skill>` (a junction on Windows, a directory symlink elsewhere), before install, or create `<home>/<agent skills folder>/<skill>/SKILL.md` by hand |
 | Plugin command in a running Orca | `orca plugin dev request local.pstack-orca <install or status or uninstall> --data "{\"dryRun\":true}" --json` |
 
 Agent skills folders under a home: `.claude/skills`, `.agents/skills` (Codex), `.gemini/config/skills` (Antigravity), `.cursor/skills`, `.grok/skills`. The full copy lives in `<home>/.pstack-orca`.
@@ -87,5 +87,5 @@ It refuses any folder it did not create. Remove every scratch home you made, aft
 ## Not covered
 
 - The plugin's commands doing a real install inside Orca: that writes to the real home, so this skill only drives them as a dry run.
-- macOS and Linux. `link` creates a junction, which is a Windows concept; on other systems Node makes a directory symlink instead.
+- Linux. Every drive here has been run on Windows and macOS; on macOS `link` makes a directory symlink and the scratch home sits under `/var/folders`.
 - An agent actually loading a stub and following it to the real skill. That needs an agent session, not this harness.

@@ -9,7 +9,8 @@ The five by Matt Pocock were picked after checking current vendor guidance and m
 ## What it does
 
 - Skills are the same text as pstack. One file, [`adapter/orca.md`](./adapter/orca.md), maps the Cursor names in them to Orca.
-- Work that a subagent hands back (code, review, judging) runs as an Orca worker through Orca's bundled `orchestration` skill, so a review panel can seat a different agent in each chair. Searching and reading stays with the agent you are talking to.
+- A subagent runs on the coordinating agent's own subagent tool when that tool can select the model its role asks for: in Claude Code, the `Agent` tool with `opus`, `sonnet`, `haiku` or `fable`, or the parent model. It becomes an Orca worker, through Orca's bundled `orchestration` skill, only when it needs a model from another vendor or one the tool cannot select, its own worktree, or a session that outlives the chat. A review panel decides seat by seat, so it can still seat a different agent in each chair. An agent with no subagent tool sends every such subagent to an Orca worker. Searching and reading stays with the agent you are talking to.
+- The model sheet, `~/.pstack-orca/pstack-models.md`, takes a Claude alias with an optional effort, such as `opus xhigh`, or an Orca agent with an optional model and effort, such as `codex` or `claude claude-opus-5-5 xhigh`.
 - Steps that need a Cursor-only feature, such as Automations or Bugbot, are skipped with one line.
 
 ## Install
@@ -28,9 +29,10 @@ Then, in any agent, run `setup-pstack` once and use `poteto-mode` for work that 
 
 ## Limits
 
-- Orca has no read-only worker. A judge is told not to edit, and the coordinator checks `git status` afterward.
-- An Orca worker ends the coordinator's turn, so `arena`, `swarm` and `interrogate` run across several turns.
-- Tested on Windows only, with Claude Code coordinating and Codex and Antigravity as workers. Not yet tested on macOS or Linux, with Cursor or Grok, or for `setup-pstack` and `poteto-mode`.
+- Neither route has an enforced read-only mode. A judge is told not to edit, and the coordinator checks `git status` afterward.
+- An Orca worker ends the coordinator's turn, so a phase with at least one worker runs across two turns. `swarm` usually does, because its workers ask for `environment: "cloud"`, which is a worker in its own worktree. A phase of only native subagents stays in one turn.
+- A seat whose model cannot be launched is reported as unavailable, never run on the parent model instead.
+- The installer, doctor and build were run on Windows and macOS. Routing was tested on Windows with Claude Code coordinating and Codex and Antigravity as workers, before native seats existed. The hybrid routing, Linux, Cursor and Grok, `setup-pstack` and `poteto-mode` have not been tested end to end.
 - Skills are manual: type the name. In Codex and Antigravity they do not show in the automatic skill list.
 
 ## Updating from the sources

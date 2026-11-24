@@ -2,7 +2,7 @@
 // Scratch home folders for driving the installer. Usage:
 //   node home.mjs new [agent...]        create a scratch home with those agent folders (default: all five), print its path
 //   node home.mjs snapshot <home>       print every entry under it with a content hash, sorted
-//   node home.mjs link <home> <agent> <skill>   put a junction named <skill> in that agent's skills folder
+//   node home.mjs link <home> <agent> <skill>   put a junction (a directory symlink outside Windows) named <skill> in that agent's skills folder
 //   node home.mjs remove <home>         delete a scratch home this script created
 import { createHash } from 'node:crypto'
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'

@@ -30,5 +30,5 @@ For a plain folder, create `<home>/.claude/skills/tdd/SKILL.md` by hand in place
 
 ## Gotchas
 
-- `link` makes a junction on Windows. A dangling link needs its target removed by hand after `link`: delete `<home>/user-skill-target/<skill>`.
+- `link` makes a junction on Windows and a directory symlink on macOS and Linux. Run it before install: on a name that already has a stub it fails with `EEXIST`. A dangling link needs its target removed by hand after `link`: delete `<home>/user-skill-target/<skill>`.
 - The count is 64 minus the skills kept, so two kept skills give 62.
