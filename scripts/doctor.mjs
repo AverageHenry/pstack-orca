@@ -66,7 +66,8 @@ const target = pstackHome(home)
 const installed = clean(attempt(() => readFileSync(join(target, 'VERSION'), 'utf8')))
 console.log(`pstack home: ${target} (${installed.split('\n')[0] || 'no VERSION'})`)
 const releaseVersion = clean(attempt(() => readFileSync(RELEASE_VERSION, 'utf8')))
-const homeStale = stale(installed, releaseVersion)
+// Why only with a VERSION: a home with nothing installed, or just uninstalled, has nothing to be stale.
+const homeStale = installed ? stale(installed, releaseVersion) : null
 if (homeStale) console.log(`pstack home is stale, ${homeStale}`)
 
 let bad = homeStale ? 1 : 0
