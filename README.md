@@ -25,7 +25,7 @@ That copies pstack to `~/.pstack-orca` and writes one small stub per skill into 
 
 Then, in any agent, run `setup-pstack` once and use `poteto-mode` for work that needs rigor.
 
-`node scripts/doctor.mjs --home <your home folder>` checks an install without writing anything: it counts each agent's stubs and exits non-zero when one is broken or older than the installed copy.
+`node scripts/doctor.mjs --home <your home folder>` checks an install without writing anything: it counts each agent's stubs and exits non-zero when one is broken, or when the install is older than the release you run it from.
 
 ## Limits
 

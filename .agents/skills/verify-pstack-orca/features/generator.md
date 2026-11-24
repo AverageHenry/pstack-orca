@@ -25,5 +25,5 @@ To prove the adapter check, remove one row from a copy of the repository's `adap
 ## Gotchas
 
 - Both source checkouts must be cloned with `core.autocrlf=false`. With line-ending conversion on, `--check` reports every text file as changed.
-- `tree/VERSION` records the commit of each source, so a source checkout at another commit makes `--check` fail on that file alone.
+- `tree/VERSION` records the commit of each source and, on its last line, the `version` in `orca-plugin.json`. A source checkout at another commit, or a version bump without a rebuild, makes `--check` fail on that file alone.
 - The build needs the source checkouts on disk. Without them, only the installer features can be driven.
