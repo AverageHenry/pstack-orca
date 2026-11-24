@@ -1,14 +1,16 @@
 #!/usr/bin/env node
-// Checks an install without writing: each stub must point at a pstack home that has its skill, and carry the installed version.
+// Checks an install without writing: the pstack home and each stub must carry this release's version, and each stub must point at a pstack home that has its skill.
 import { lstatSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { agentRoots, pstackHome } from '../skill-placement.mjs'
 
 const USAGE = 'Usage: node scripts/doctor.mjs --home <dir>'
 const MARKER = '.pstack-orca.json'
 const SHOWN = 5
+const RELEASE_VERSION = join(dirname(fileURLToPath(import.meta.url)), '..', 'tree', 'VERSION')
 
-// Why 2: exit code 1 means a broken or stale stub.
+// Why 2: exit code 1 means a broken stub or a stale install.
 function fail(message) {
   console.error(`${message}\n${USAGE}`)
   process.exit(2)
@@ -44,14 +46,14 @@ function broken(dir, skill) {
 }
 
 // Why the first differing line: VERSION has several lines, and the first one often still matches.
-function stale(recorded, installed) {
-  if (recorded === installed && installed) return null
+function stale(recorded, expected) {
+  if (recorded === expected && expected) return null
   if (!recorded) return 'records no version'
-  if (!installed) return 'pstack home has no VERSION'
-  const [have, want] = [recorded.split('\n'), installed.split('\n')]
+  if (!expected) return 'this release has no VERSION'
+  const [have, want] = [recorded.split('\n'), expected.split('\n')]
   let line = 0
   while (have[line] === want[line]) line += 1
-  return `records "${have[line] ?? ''}", pstack home has "${want[line] ?? ''}"`
+  return `records "${have[line] ?? ''}", this release has "${want[line] ?? ''}"`
 }
 
 // Why no default: a check must never land on the real home folder by accident.
@@ -63,8 +65,12 @@ if (!isFolder(home)) fail(`Not a folder: ${home}`)
 const target = pstackHome(home)
 const installed = clean(attempt(() => readFileSync(join(target, 'VERSION'), 'utf8')))
 console.log(`pstack home: ${target} (${installed.split('\n')[0] || 'no VERSION'})`)
+const releaseVersion = clean(attempt(() => readFileSync(RELEASE_VERSION, 'utf8')))
+// Why only with a VERSION: a home with nothing installed, or just uninstalled, has nothing to be stale.
+const homeStale = installed ? stale(installed, releaseVersion) : null
+if (homeStale) console.log(`pstack home is stale, ${homeStale}`)
 
-let bad = 0
+let bad = homeStale ? 1 : 0
 for (const { agent, skills: root } of agentRoots(home)) {
   const counts = { broken: 0, stale: 0 }
   const found = new Map()
@@ -77,7 +83,7 @@ for (const { agent, skills: root } of agentRoots(home)) {
   for (const skill of names) {
     const dir = join(root, skill)
     note('broken', broken(dir, skill), skill)
-    note('stale', stale(clean(attempt(() => JSON.parse(readFileSync(join(dir, MARKER), 'utf8')).version)), installed), skill)
+    note('stale', stale(clean(attempt(() => JSON.parse(readFileSync(join(dir, MARKER), 'utf8')).version)), releaseVersion), skill)
   }
   bad += counts.broken + counts.stale
   console.log(`${agent}: ${names.length} stubs, ${counts.broken} broken, ${counts.stale} stale`)
@@ -89,6 +95,6 @@ for (const { agent, skills: root } of agentRoots(home)) {
   }
 }
 if (bad) {
-  console.log('Run the installer again to fix broken or stale stubs.')
+  console.log('Run the installer again to fix a stale pstack home or broken or stale stubs.')
   process.exitCode = 1
 }

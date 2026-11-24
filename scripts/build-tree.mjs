@@ -174,7 +174,8 @@ function render() {
     for (const path of walk(dir)) files.set(`skills/${name}/${relative(dir, path).split("\\").join("/")}`, readFileSync(path));
   }
   files.set("LICENSE.cursor-team-kit", readFileSync(join(SOURCE, "cursor-team-kit", "LICENSE")));
-  files.set("VERSION", Buffer.from(`pstack ${version}\ncursor/plugins ${head(SOURCE)}\nmattpocock/skills ${head(MATT)}\n`));
+  const release = JSON.parse(readFileSync(join(ROOT, "orca-plugin.json"), "utf8")).version;
+  files.set("VERSION", Buffer.from(`pstack ${version}\ncursor/plugins ${head(SOURCE)}\nmattpocock/skills ${head(MATT)}\npstack-orca ${release}\n`));
   return files;
 }
 
